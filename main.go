@@ -13,12 +13,21 @@ func aboutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "I'm Nazma")
 }
 
+func getProducts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Please give me GET request", 400)
+		return
+	}
+}
+
 func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/hello", helloHandler)
 
 	mux.HandleFunc("/about", aboutHandler)
+
+	mux.HandleFunc("/products", getProducts)
 
 	fmt.Println("Server running on :3000")
 
