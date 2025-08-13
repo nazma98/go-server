@@ -27,14 +27,22 @@ var productList []Product
 func getProducts(w http.ResponseWriter, r *http.Request) {
 
 	handleCors(w)
-	handlePreflightReq(w, r)
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
 
 	sendData(w, productList, 200)
 }
 
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	handleCors(w)
-	handlePreflightReq(w, r)
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
 
 	var newProduct Product
 
@@ -80,11 +88,14 @@ func main() {
 
 	mux.Handle("GET /about", http.HandlerFunc(aboutHandler))
 
-	mux.Handle("GET /products", http.HandlerFunc(getProducts))
+	// mux.Handle("GET /products", http.HandlerFunc(getProducts))
+	mux.Handle("GET /products", corsMiddleware(http.HandlerFunc(getProducts)))
 
 	mux.Handle("OPTIONS /products", http.HandlerFunc(getProducts))
 
 	mux.Handle("POST /create-products", http.HandlerFunc(createProduct))
+
+	mux.Handle("OPTIONS /create-products", http.HandlerFunc(createProduct))
 
 	fmt.Println("Server running on :8080")
 
@@ -149,5 +160,20 @@ func init() {
 	// productList = append(productList, prd4)
 	// productList = append(productList, prd5)
 	// productList = append(productList, prd6)
+
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	handleCors := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Nazma")
+		w.Header().Set("Content-Type", "application/json")
+
+		next.ServeHTTP(w, r)
+		//getProducts
+	}
+
+	return http.HandlerFunc(handleCors)
 
 }
