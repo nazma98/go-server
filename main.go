@@ -26,24 +26,10 @@ var productList []Product
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
 
-	handleCors(w)
-
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-		return
-	}
-
 	sendData(w, productList, 200)
 }
 
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	handleCors(w)
-
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-		return
-	}
-
 	var newProduct Product
 
 	decoder := json.NewDecoder(r.Body)
@@ -61,20 +47,6 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	sendData(w, newProduct, 201)
 }
 
-func handleCors(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Nazma")
-	w.Header().Set("Content-Type", "application/json")
-
-}
-
-func handlePreflightReq(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-	}
-}
-
 func sendData(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.WriteHeader(statusCode)
 	encoder := json.NewEncoder(w)
@@ -88,8 +60,7 @@ func main() {
 
 	mux.Handle("GET /about", http.HandlerFunc(aboutHandler))
 
-	// mux.Handle("GET /products", http.HandlerFunc(getProducts))
-	mux.Handle("GET /products", corsMiddleware(http.HandlerFunc(getProducts)))
+	mux.Handle("GET /products", http.HandlerFunc(getProducts))
 
 	mux.Handle("OPTIONS /products", http.HandlerFunc(getProducts))
 
@@ -99,7 +70,9 @@ func main() {
 
 	fmt.Println("Server running on :8080")
 
-	err := http.ListenAndServe(":8080", mux)
+	globalRouter := globalRouter(mux)
+
+	err := http.ListenAndServe(":8080", globalRouter)
 	if err != nil {
 		fmt.Println("Error starting the server", err)
 	}
@@ -163,17 +136,18 @@ func init() {
 
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
-	handleCors := func(w http.ResponseWriter, r *http.Request) {
+func globalRouter(mux *http.ServeMux) http.Handler {
+	handleAllReq := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Nazma")
 		w.Header().Set("Content-Type", "application/json")
-
-		next.ServeHTTP(w, r)
-		//getProducts
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(200)
+			return
+		}
+		mux.ServeHTTP(w, r)
 	}
 
-	return http.HandlerFunc(handleCors)
-
+	return http.HandlerFunc(handleAllReq)
 }
