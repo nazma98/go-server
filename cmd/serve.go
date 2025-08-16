@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"ecommerce/global_router"
@@ -11,19 +10,20 @@ import (
 )
 
 func Serve() {
+	manager := middleware.NewManager()
+
 	mux := http.NewServeMux()
 
-	cntrl := func(w http.ResponseWriter, r *http.Request) {
-		log.Println("ami hnadler, middle e print hobo")
-	}
+	mux.Handle("GET /shimul", manager.With(
+		middleware.Hudai,
+		middleware.Logger,
+	)(http.HandlerFunc(handlers.Test)))
 
-	handler := http.HandlerFunc(cntrl)
+	mux.Handle("GET /route", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.Test))))
 
-	mux.Handle("GET /route", middleware.Logger(handler))
-
-	mux.Handle("GET /products", http.HandlerFunc(handlers.GetProducts))
-	mux.Handle("POST /products", http.HandlerFunc(handlers.CreateProduct))
-	mux.Handle("GET /products/{id}", http.HandlerFunc(handlers.GetProductByID))
+	mux.Handle("GET /products", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.GetProducts))))
+	mux.Handle("POST /products", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.CreateProduct))))
+	mux.Handle("GET /products/{id}", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.GetProductByID))))
 
 	globalRouter := global_router.GlobalRouter(mux)
 
