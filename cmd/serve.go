@@ -15,15 +15,25 @@ func Serve() {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /shimul", manager.With(
-		middleware.Hudai,
+		http.HandlerFunc(handlers.Test),
 		middleware.Logger,
-	)(http.HandlerFunc(handlers.Test)))
+		middleware.Hudai,
+	))
 
-	mux.Handle("GET /route", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.Test))))
+	mux.Handle("GET /products", manager.With(
+		http.HandlerFunc(handlers.GetProducts),
+		middleware.Logger,
+		middleware.Hudai))
 
-	mux.Handle("GET /products", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.GetProducts))))
-	mux.Handle("POST /products", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.CreateProduct))))
-	mux.Handle("GET /products/{id}", middleware.Hudai(middleware.Logger(http.HandlerFunc(handlers.GetProductByID))))
+	mux.Handle("POST /products", manager.With(
+		http.HandlerFunc(handlers.CreateProduct),
+		middleware.Logger,
+		middleware.Hudai))
+
+	mux.Handle("GET /products/{id}", manager.With(
+		http.HandlerFunc(handlers.GetProductByID),
+		middleware.Logger,
+		middleware.Hudai))
 
 	globalRouter := global_router.GlobalRouter(mux)
 
