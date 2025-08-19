@@ -5,35 +5,17 @@ import (
 	"net/http"
 
 	"ecommerce/global_router"
-	"ecommerce/handlers"
 	"ecommerce/middleware"
 )
 
 func Serve() {
 	manager := middleware.NewManager()
 
+	manager.Use(middleware.Hudai, middleware.Logger, middleware.Arekta)
+
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /shimul", manager.With(
-		http.HandlerFunc(handlers.Test),
-		middleware.Logger,
-		middleware.Hudai,
-	))
-
-	mux.Handle("GET /products", manager.With(
-		http.HandlerFunc(handlers.GetProducts),
-		middleware.Logger,
-		middleware.Hudai))
-
-	mux.Handle("POST /products", manager.With(
-		http.HandlerFunc(handlers.CreateProduct),
-		middleware.Logger,
-		middleware.Hudai))
-
-	mux.Handle("GET /products/{id}", manager.With(
-		http.HandlerFunc(handlers.GetProductByID),
-		middleware.Logger,
-		middleware.Hudai))
+	initRoutes(mux, manager)
 
 	globalRouter := global_router.GlobalRouter(mux)
 
