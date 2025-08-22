@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"ecommerce/global_router"
 	"ecommerce/middleware"
 )
 
@@ -17,7 +16,7 @@ func Serve() {
 
 	initRoutes(mux, manager)
 
-	globalRouter := global_router.GlobalRouter(mux)
+	globalRouter := middleware.CorsWithPreflight(mux)
 
 	fmt.Println("Server running on :8080")
 	err := http.ListenAndServe(":8080", globalRouter)
