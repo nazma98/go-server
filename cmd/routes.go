@@ -7,9 +7,11 @@ import (
 )
 
 func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
-	mux.Handle("GET /shimul", manager.With(
-		http.HandlerFunc(handlers.Test),
-	),
+	mux.Handle("GET /shimul",
+		manager.With(
+			http.HandlerFunc(handlers.Test),
+			middleware.Arekta,
+		),
 	)
 
 	mux.Handle("GET /products", manager.With(
